@@ -1,12 +1,9 @@
 const dotenv = require("dotenv");
 const express = require("express");
 const cors = require("cors");
-const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const https = require("https");
 const http = require("http");
-const fs = require("fs");
-const path = require("path");
 const {
   MongoDBHelper,
   ResponseHelper,
@@ -39,6 +36,7 @@ async function startServer() {
 
     const HTTP_PORT = process.env.PORT || 5000;
     const HTTPS_PORT = process.env.HTTPS_PORT || 5443;
+    const HOST = process.env.HOST || "localhost";
 
     // Create HTTP server
     const httpServer = http.createServer(app);
@@ -48,18 +46,18 @@ async function startServer() {
     try {
       const sslConfig = SSLHelper.getSSLConfig();
       httpsServer = https.createServer(sslConfig, app);
-      httpsServer.listen(HTTPS_PORT, () => {
-        logger.info(
-          `🔒 HTTPS Server running on https://localhost:${HTTPS_PORT}`
-        );
+      httpsServer.listen(HTTPS_PORT, HOST, () => {
+        logger.info(`🔒 HTTPS Server running on https://${HOST}:${HTTPS_PORT}`);
       });
     } catch (error) {
-      logger.error(`❌ Failed to start HTTPS server on https://localhost:${HTTPS_PORT} : ${error.message}`);
+      logger.error(
+        `❌ Failed to start HTTPS server on https://${HOST}:${HTTPS_PORT} : ${error.message}`
+      );
     }
 
     // Start both servers
-    httpServer.listen(HTTP_PORT, () => {
-      logger.info(`🚀 HTTP Server running on http://localhost:${HTTP_PORT}`);
+    httpServer.listen(HTTP_PORT, HOST, () => {
+      logger.info(`🚀 HTTP Server running on http://${HOST}:${HTTP_PORT}`);
     });
   } catch (error) {
     logger.error(`❌ Failed to start server: ${error.message}`);
@@ -81,6 +79,8 @@ process.on("SIGINT", async () => {
 });
 
 // Configure routes
+
+app.use("/", require("./features/index/index.route.js"));
 
 // Mount unauthenticated routes
 app.use("/api", UnauthenticatedRoutes);
