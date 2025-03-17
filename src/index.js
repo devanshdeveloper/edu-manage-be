@@ -46,7 +46,7 @@ async function startServer() {
     try {
       const sslConfig = SSLHelper.getSSLConfig();
       httpsServer = https.createServer(sslConfig, app);
-      httpsServer.listen(HTTPS_PORT, HOST, () => {
+      httpsServer.listen(HTTPS_PORT, () => {
         logger.info(`🔒 HTTPS Server running on https://${HOST}:${HTTPS_PORT}`);
       });
     } catch (error) {
@@ -56,7 +56,7 @@ async function startServer() {
     }
 
     // Start both servers
-    httpServer.listen(HTTP_PORT, HOST, () => {
+    httpServer.listen(HTTP_PORT, () => {
       logger.info(`🚀 HTTP Server running on http://${HOST}:${HTTP_PORT}`);
     });
   } catch (error) {
