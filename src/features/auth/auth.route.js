@@ -13,6 +13,7 @@ const {
   ImageHelper,
   validator,
   ExpressHelper,
+  ExpressValidator,
 } = require("../../helpers");
 const ErrorMap = require("../../constants/ErrorMap");
 const renderTemplate = require("../../email-templates/renderTemplate");

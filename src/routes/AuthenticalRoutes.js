@@ -59,6 +59,11 @@ router.use(
   require("../features/plan/plan.route")
 );
 router.use(
+  "/postal-code",
+  authHelper.authenticate(),
+  require("../features/postal-code/postal-code.route")
+);
+router.use(
   "/role",
   authHelper.authenticate(),
   require("../features/role/role.route")

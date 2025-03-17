@@ -6,6 +6,7 @@ const EmailHelper = require("./EmailHelper");
 const EncryptionHelper = require("./EncryptionHelper");
 const ExpressHelper = require("./ExpressHelper");
 const { validator, idValidatorMiddleware } = require("./ExpressValidator");
+const ExpressValidator = require("./ExpressValidator");
 const FileSystemHelper = require("./FileSystemHelper");
 const FileUploadHelper = require("./FileUploadHelper");
 const FunctionHelper = require("./FunctionHelper");
@@ -31,6 +32,7 @@ module.exports = {
   EmailHelper,
   EncryptionHelper,
   ExpressHelper,
+  ExpressValidator,
   FileSystemHelper,
   FileUploadHelper,
   FunctionHelper,
