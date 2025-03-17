@@ -18,13 +18,13 @@ class MongoDBHelper {
   async connect() {
     try {
       if (!this.connection) {
+        logger.info(`🚀 Connecting to MongoDB... ${this.uri}`);
         this.connection = await mongoose.connect(this.uri, this.options);
         logger.info(`✅ Successfully connected to MongoDB!!! ${this.uri}`);
       }
       return this.connection;
     } catch (error) {
-      logger.error("MongoDB connection error:", error);
-      throw error;
+      logger.error("MongoDB connection error : ", error.message);
     }
   }
 
