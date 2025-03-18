@@ -1,12 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-// Import route modules
-const authRoutes = require('../features/auth/auth.route');
-const planUnauthRoutes = require('../features/plan/plan.unauth.route');
-
 // Mount routes
-router.use('/auth', authRoutes);
-router.use('/plan', planUnauthRoutes);
+router.use("/auth", require("../features/auth/auth.route"));
+router.use("/plan", require("../features/plan/plan.unauth.route"));
+router.use("/contact-us", require("../features/contact-us/contact-us.route"));
 
 module.exports = router;

@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const logger = require("./LogHelper");
-
+const { rateLimit } = require("express-rate-limit");
 class ExpressHelper {
   constructor(app) {
     this.app = app;
@@ -29,6 +29,18 @@ class ExpressHelper {
         });
       });
     };
+  }
+
+  static rateLimitMiddleware({
+    windowMs = 60 * 60 * 1000, // 1 hour default
+    max = 5, // 5 requests default
+    message = "Too many requests, please try again later",
+  } = {}) {
+    return rateLimit({
+      windowMs,
+      max,
+      message,
+    });
   }
 
   // Register a route group with prefix
