@@ -241,7 +241,7 @@ router.delete(
       }
       return responseHelper
         .status(200)
-        .body({ message: "Role deleted successfully" })
+        .message( "Role deleted successfully" )
         .send();
     } catch (error) {
       return responseHelper.error(error).send();

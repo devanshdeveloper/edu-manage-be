@@ -21,6 +21,7 @@ const {
   default: EmailVerificationTemplate,
 } = require("../../email-templates/components/EmailVerificationTemplate");
 const { AuthState } = require("../../constants");
+const SMSHelper = require("../../helpers/SMSHelper");
 
 // Configure file upload helper for avatar uploads
 const fileUploadHelper = new FileUploadHelper();
@@ -179,6 +180,77 @@ router.post(
   }
 );
 
+// send otp
+router.post(
+  "/send-otp",
+  validatorMiddleware({
+    body: {
+      email: [validator.string(), validator.email()],
+      phone: [validator.string()],
+    },
+  }),
+  async (req, res) => {
+    const requestHelper = new RequestHelper(req);
+    const responseHelper = new ResponseHelper(res);
+    try {
+      const { email, phone } = requestHelper.body();
+
+      if (!email && !phone) {
+        return responseHelper
+          .error({
+            message: "Either email or phone is required",
+            field: "email",
+          })
+          .send();
+      }
+
+      // Find user by email or phone
+      const user = await User.findOne({ $or: [{ email }, { phone }] });
+      if (!user) {
+        return responseHelper
+          .error({
+            ...ErrorMap.USER_NOT_FOUND,
+            field: email ? "email" : "phone",
+          })
+          .send();
+      }
+
+      // Generate OTP
+      const otp = authHelper.generateOTP();
+
+      // Save OTP to user
+      await User.findByIdAndUpdate(user._id, {
+        otp,
+        otpExpires: Date.now() + 1 * 60 * 1000, // 1 minute
+      });
+
+      if (email) {
+        // Send OTP via email
+        const emailHelper = new EmailHelper();
+        await emailHelper.sendEmail({
+          to: email,
+          subject: "OTP Verification",
+          htmlContent: `Your OTP is: <strong>${otp}</strong>`,
+        });
+      } else if (phone) {
+        // Send OTP via SMS
+        const smsHelper = new SMSHelper();
+        await smsHelper.sendSMS({
+          to: phone,
+          message: `Your OTP is: ${otp}`,
+        });
+      }
+
+      return responseHelper
+        .status(200)
+        .message( `OTP sent successfully to ${email || phone}` )
+        .send();
+    } catch (error) {
+      responseHelper.error(error).send();
+    }
+  }
+);
+
 // Login user
 router.post(
   "/login",
@@ -269,7 +341,7 @@ router.post(
 
       return responseHelper
         .status(200)
-        .body({ message: "Email verified successfully" })
+        .message( "Email verified successfully" )
         .send();
     } catch (error) {
       responseHelper.error(error).send();
@@ -321,7 +393,7 @@ router.post(
 
       return responseHelper
         .status(200)
-        .body({ message: "Password reset successfully" })
+        .message( "Password reset successfully" )
         .send();
     } catch (error) {
       responseHelper.error(error).send();
@@ -417,7 +489,7 @@ router.delete("/delete", authHelper.authenticate(), async (req, res) => {
     }
     return responseHelper
       .status(200)
-      .body({ message: "User deleted successfully" })
+      .message( "User deleted successfully" )
       .send();
   } catch (error) {
     responseHelper.error(error).send();
@@ -466,7 +538,7 @@ router.post(
 
       return responseHelper
         .status(200)
-        .body({ message: "Password reset link sent to email" })
+        .message( "Password reset link sent to email" )
         .send();
     } catch (error) {
       responseHelper.error(error).send();
@@ -520,7 +592,7 @@ router.put(
 
       return responseHelper
         .status(200)
-        .body({ message: "Password updated successfully" })
+        .message( "Password updated successfully" )
         .send();
     } catch (error) {
       responseHelper.error(error).send();
@@ -545,7 +617,7 @@ router.post("/logout", authHelper.authenticate(), async (req, res) => {
 
     return responseHelper
       .status(200)
-      .body({ message: "Logged out successfully" })
+      .message( "Logged out successfully" )
       .send();
   } catch (error) {
     responseHelper.error(error).send();

@@ -221,7 +221,7 @@ router.delete(
 
       return responseHelper
         .status(200)
-        .body({ message: "User deleted successfully" })
+        .message( "User deleted successfully" )
         .send();
     } catch (error) {
       responseHelper.error(error).send();

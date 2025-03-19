@@ -509,7 +509,7 @@ router.delete("/delete-one/:id", async (req, res) => {
     }
     return responseHelper
       .status(200)
-      .body({ message: "Teacher deleted successfully" })
+      .message( "Teacher deleted successfully" )
       .send();
   } catch (error) {
     responseHelper.error(error).send();

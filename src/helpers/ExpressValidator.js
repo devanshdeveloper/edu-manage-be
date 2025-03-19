@@ -19,7 +19,7 @@ class ExpressValidator {
   string(message = "Must be a string") {
     return {
       type: "string",
-      validate: (value) => typeof value === "string",
+      validate: (value) => typeof value === "string" || value === null,
       message,
     };
   }
@@ -33,12 +33,57 @@ class ExpressValidator {
     };
   }
 
-  // Array validation
-  array(message = "Must be an array") {
+  // Validate rules against a value
+  _validateRules(value, rules) {
+    const ruleArray = Array.isArray(rules) ? rules : [rules];
+    for (const rule of ruleArray) {
+      if (!rule.validate(value)) return false;
+    }
+    return true;
+  }
+
+  // Array validation with optional schema for array elements
+  array(schemaOrMessage = "Must be an array", message = "Must be an array") {
+    const isSchema = typeof schemaOrMessage === "object";
+    const finalMessage = isSchema ? message : schemaOrMessage;
+
     return {
       type: "array",
-      validate: (value) => Array.isArray(value),
-      message,
+      validate: (value) => {
+        if (!Array.isArray(value)) return false;
+        if (!isSchema) return true;
+
+        // Validate each array element against the schema
+        const errors = [];
+        value.forEach((item, index) => {
+          for (const [field, rules] of Object.entries(schemaOrMessage)) {
+            const ruleArray = Array.isArray(rules) ? rules : [rules];
+            if (!this._validateRules(item[field], rules)) {
+              errors.push({
+                index,
+                field,
+                message: ruleArray[0].message,
+              });
+            }
+          }
+        });
+        return errors.length === 0;
+      },
+      message: (value) => {
+        if (!Array.isArray(value)) return finalMessage;
+        if (!isSchema) return finalMessage;
+
+        const errors = [];
+        value.forEach((item, index) => {
+          for (const [field, rules] of Object.entries(schemaOrMessage)) {
+            const ruleArray = Array.isArray(rules) ? rules : [rules];
+            if (!this._validateRules(item[field], rules)) {
+              errors.push(`Item ${index}: ${field} - ${ruleArray[0].message}`);
+            }
+          }
+        });
+        return errors.length > 0 ? errors.join("; ") : finalMessage;
+      },
     };
   }
 
@@ -58,7 +103,6 @@ class ExpressValidator {
       message,
     };
   }
-
 
   // Number validation
   number(message = "Must be a number") {
@@ -122,6 +166,14 @@ class ExpressValidator {
     };
   }
 
+  matches(regex, message = "Invalid format") {
+    return {
+      type: "matches",
+      validate: (value) => regex.test(value),
+      message,
+    };
+  }
+
   // Custom validation rule
   custom(validatorFn, message = "Validation failed") {
     return {
@@ -139,18 +191,13 @@ class ExpressValidator {
       for (const [field, rules] of Object.entries(fields)) {
         const value = this._getValue(location, field);
 
-        // Handle array of rules
-        const ruleArray = Array.isArray(rules) ? rules : [rules];
-
-        for (const rule of ruleArray) {
-          if (!rule.validate(value)) {
-            errors.push({
-              ...ErrorMap.VALIDATION_ERROR,
-              field: field,
-              message: rule.message,
-            });
-            break;
-          }
+        if (!this._validateRules(value, rules)) {
+          const ruleArray = Array.isArray(rules) ? rules : [rules];
+          errors.push({
+            ...ErrorMap.VALIDATION_ERROR,
+            field: field,
+            message: ruleArray[0].message,
+          });
         }
       }
     }
@@ -232,8 +279,6 @@ class ExpressValidator {
       message,
     };
   }
-
-
 
   // Example: Custom validation rule for checking if a field is a valid hex color code
   hexColor(message = "Invalid hex color format") {

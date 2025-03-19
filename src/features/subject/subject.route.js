@@ -117,7 +117,7 @@ router.delete("/delete-one/:id", idValidatorMiddleware(), async (req, res) => {
     }
     return responseHelper
       .status(200)
-      .body({ message: "Subject deleted successfully" })
+      .message("Subject deleted successfully")
       .send();
   } catch (error) {
     return responseHelper.error(error).send();

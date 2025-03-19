@@ -13,6 +13,24 @@ class PromiseHelper {
     return Promise.race([promise, timeoutPromise]);
   }
 
+  // tryCatch
+  /**
+   * Execute a promise and handle errors
+   * @param {Promise} promise - The promise to execute
+   * @param {Function} [onError] - Callback function called on error
+   * @returns {Promise<Array>} - Array containing error or null and result or null
+   */
+  static async tryCatch(promise, onError = null) {
+    return promise
+      .then((data) => [null, data])
+      .catch((err) => {
+        if (onError) {
+          onError && onError(err);
+        }
+        return [err, null];
+      });
+  }
+
   /**
    * Retry a promise with delay
    * @param {Function} fn - Function that returns a promise

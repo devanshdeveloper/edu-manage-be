@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const axios = require("axios");
 const { Bank } = require("../../models");
 const { ResponseHelper, RequestHelper, validator } = require("../../helpers");
 const { ErrorMap, Operations, Modules, UserTypes } = require("../../constants");
@@ -115,9 +116,9 @@ router.get(
       );
 
       const data = await Bank.paginate(
-        { 
+        {
           sort: { [sortField]: sortOrder },
-          filter: searchFilter
+          filter: searchFilter,
         },
         requestHelper.getPaginationParams()
       );
@@ -171,7 +172,11 @@ router.put(
   }),
   validatorMiddleware({
     body: {
-      name: [validator.string(), validator.minLength(2), validator.maxLength(100)],
+      name: [
+        validator.string(),
+        validator.minLength(2),
+        validator.maxLength(100),
+      ],
       bankName: [validator.string(), validator.maxLength(100)],
       branch: [validator.string(), validator.maxLength(100)],
       branchAddress: [validator.string(), validator.maxLength(200)],
@@ -252,28 +257,26 @@ router.delete(
 
 // Validate IFSC code
 router.get(
-  "/validate-ifsc/:ifsc",
-  permissionMiddleware({
-    UserTypes: [UserTypes.Admin, UserTypes.SuperAdmin],
-    Operations: Operations.READ,
-    Modules: Modules.Banks,
-  }),
+  "/ifsc/:ifsc",
+  // permissionMiddleware({
+  //   UserTypes: [UserTypes.Admin, UserTypes.SuperAdmin],
+  //   Operations: Operations.READ,
+  //   Modules: Modules.Banks,
+  // }),
   validatorMiddleware({
     params: {
-      ifsc: [validator.required(), validator.string(), validator.matches(/^[A-Z]{4}0[A-Z0-9]{6}$/)],
+      ifsc: [
+        validator.required(),
+        validator.string(),
+        validator.matches(/^[A-Z]{4}0[A-Z0-9]{6}$/),
+      ],
     },
   }),
   async (req, res) => {
     const responseHelper = new ResponseHelper(res);
     try {
-      const response = await fetch(`https://ifsc.razorpay.com/${req.params.ifsc}`);
-      if (!response.ok) {
-        return responseHelper
-          .status(400)
-          .error({ ...ErrorMap.INVALID_INPUT, message: "Invalid IFSC code" })
-          .send();
-      }
-      const data = await response.json();
+      const response = await axios.get(`https://ifsc.razorpay.com/${req.params.ifsc}`);
+      const data = response.data;
       return responseHelper.status(200).body({ bank_details: data }).send();
     } catch (error) {
       return responseHelper.error(error).send();

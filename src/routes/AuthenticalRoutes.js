@@ -22,6 +22,11 @@ router.use(
   require("../features/classroom/classroom.route")
 );
 router.use(
+  "/bank",
+  // authHelper.authenticate(),
+  require("../features/bank/bank.route")
+);
+router.use(
   "/dashboard",
   authHelper.authenticate(),
   require("../features/dashboard/dashboard.route")

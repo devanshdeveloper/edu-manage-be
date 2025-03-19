@@ -35,7 +35,11 @@ router.post(
       grade: [validator.required(), validator.string()],
       section: [validator.required(), validator.string()],
       phone: [validator.required(), validator.string()],
-      address: [validator.required(), validator.string(), validator.minLength(10)],
+      address: [
+        validator.required(),
+        validator.string(),
+        validator.minLength(10),
+      ],
       parentName: [validator.required(), validator.string()],
       parentPhone: [validator.required(), validator.string()],
     },
@@ -176,7 +180,11 @@ router.put(
       id: [validator.required(), validator.string()],
     },
     body: {
-      name: [validator.string(), validator.minLength(2), validator.maxLength(50)],
+      name: [
+        validator.string(),
+        validator.minLength(2),
+        validator.maxLength(50),
+      ],
       email: [validator.email()],
       enrollmentId: [validator.string()],
       grade: [validator.string()],
@@ -206,9 +214,9 @@ router.put(
       const student = await Student.findOne({ user: studentUserId });
       if (!student) {
         return responseHelper
-         .status(404)
-         .error(ErrorMap.STUDENT_NOT_FOUND)
-         .send();
+          .status(404)
+          .error(ErrorMap.STUDENT_NOT_FOUND)
+          .send();
       }
 
       // Prepare documents for parallel update
@@ -240,7 +248,8 @@ router.put(
       ];
 
       // Update both documents in parallel within a transaction
-      const [updatedStudent, updatedUser] = await MongoDBHelper.updateParallelDocuments(documents);
+      const [updatedStudent, updatedUser] =
+        await MongoDBHelper.updateParallelDocuments(documents);
 
       return responseHelper
         .status(200)
@@ -267,7 +276,7 @@ router.delete("/delete-one/:id", async (req, res) => {
     }
     return responseHelper
       .status(200)
-      .body({ message: "Student deleted successfully" })
+      .message("Student deleted successfully")
       .send();
   } catch (error) {
     responseHelper.error(error).send();
