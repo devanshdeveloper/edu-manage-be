@@ -65,7 +65,7 @@ router.use(
 );
 router.use(
   "/location",
-  authHelper.authenticate(),
+  // authHelper.authenticate(),
   require("../features/location/location.route")
 );
 router.use(

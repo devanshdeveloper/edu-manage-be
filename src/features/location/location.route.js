@@ -3,6 +3,7 @@ const router = express.Router();
 const { ResponseHelper, RequestHelper } = require("../../helpers");
 const axios = require("axios");
 const { Country, State, City } = require("country-state-city");
+const { ErrorMap } = require("../../constants");
 
 // Get location details by postal code
 router.get("/by-pincode/:pincode", async (req, res) => {
@@ -33,8 +34,8 @@ router.get("/by-pincode/:pincode", async (req, res) => {
     if (data.Status !== "Success" || data.PostOffice.length === 0) {
       return responseHelper
         .error({
+          ...ErrorMap.NOT_FOUND,
           message: "No location found for the provided pincode",
-          status: 404,
         })
         .send();
     }
@@ -63,14 +64,14 @@ router.get("/countries", async (req, res) => {
     const countries = Country.getAllCountries();
     return responseHelper
       .body({
-        countries: countries.map(country => ({
+        countries: countries.map((country) => ({
           name: country.name,
           code: country.isoCode,
           currency: country.currency,
           latitude: country.latitude,
           longitude: country.longitude,
-          flag: country.flag
-        }))
+          flag: country.flag,
+        })),
       })
       .send();
   } catch (error) {
@@ -102,14 +103,14 @@ router.get("/states-by-country/:countryCode", async (req, res) => {
       .body({
         country: {
           name: country.name,
-          code: country.isoCode
+          code: country.isoCode,
         },
-        states: states.map(state => ({
+        states: states.map((state) => ({
           name: state.name,
           code: state.isoCode,
           latitude: state.latitude,
-          longitude: state.longitude
-        }))
+          longitude: state.longitude,
+        })),
       })
       .send();
   } catch (error) {
@@ -153,17 +154,17 @@ router.get("/cities-by-state/:countryCode/:stateCode", async (req, res) => {
       .body({
         country: {
           name: country.name,
-          code: country.isoCode
+          code: country.isoCode,
         },
         state: {
           name: state.name,
-          code: state.isoCode
+          code: state.isoCode,
         },
-        cities: cities.map(city => ({
+        cities: cities.map((city) => ({
           name: city.name,
           latitude: city.latitude,
-          longitude: city.longitude
-        }))
+          longitude: city.longitude,
+        })),
       })
       .send();
   } catch (error) {
